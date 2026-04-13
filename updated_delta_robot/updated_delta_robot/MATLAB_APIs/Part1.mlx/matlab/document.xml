@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="title"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Motion of Rigid Bodies</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Rotation Matrix</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[ 
+R = [0  0  1;
+     1  0  0;
+     0  1  0];
+ 
+fprintf('Input R:\n'); disp(R);
+ 
+invR = RotInv(R);
+ 
+fprintf('RotInv(R) = R^T:\n'); disp(invR);
+fprintf('Verification R * R^T = I:\n'); disp(R * invR);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Vector to Skew-Symmetric Matrix</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+omg = [1; 2; 3];
+fprintf('Input ω = [%g; %g; %g]\n', omg);
+ 
+so3mat = VecToso3(omg);
+ 
+fprintf('[ω] (skew-symmetric matrix):\n'); disp(so3mat);
+ 
+% Verify: [ω]p should equal cross(ω, p)
+p = [4; 5; 6];
+fprintf('Verification: [ω]p vs ω × p\n');
+fprintf('  [ω]p       = [%.4f; %.4f; %.4f]\n', so3mat * p);
+fprintf('  cross(ω,p) = [%.4f; %.4f; %.4f]\n', cross(omg, p));]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Skew-Symmetric Matrix to 3-Vector</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[so3mat = [ 0  -3   2;
+           3   0  -1;
+          -2   1   0];
+fprintf('Input [ω]:\n'); disp(so3mat);
+ 
+omg = so3ToVec(so3mat);
+ 
+fprintf('so3ToVec result: ω = [%g; %g; %g]\n', omg);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Exponential Coordinates to Axis-Angle (Rotation)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+expc3 = [1; 2; 3];
+fprintf('Input exponential coordinates: [%g; %g; %g]\n', expc3);
+ 
+[omghat, theta] = AxisAng3(expc3);
+ 
+fprintf('Unit axis ω̂ = [%.4f; %.4f; %.4f]\n', omghat);
+fprintf('Angle θ = %.4f rad (%.2f°)\n', theta, rad2deg(theta));
+fprintf('Verification ||ω̂|| = %.6f\n', norm(omghat));
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Matrix Exponential for SO(3) (Rodrigues' Formula)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+% 90° rotation about z-axis
+omgtheta = [0; 0; pi/2];
+so3mat = VecToso3(omgtheta);
+fprintf('Exponential coordinates: 90° about z-axis\n');
+ 
+R = MatrixExp3(so3mat);
+ 
+fprintf('R = e^{[ω̂]θ}:\n'); disp(R);
+fprintf('Verification: det(R) = %.6f\n', det(R));
+fprintf('Verification: R*R^T ≈ I: max error = %.2e\n', max(abs(R*R' - eye(3)), [], 'all'));]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Matrix Logarithm for SO(3)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[ 
+%  Computes [ω̂]θ = log(R) ∈ so(3).
+%  Uses θ = cos^{-1}((tr(R)-1)/2), [ω̂] = (R - R^T)/(2 sin θ)
+ 
+R = [0  -1  0;
+     1   0  0;
+     0   0  1];  % 90° rotation about z-axis
+fprintf('Input R (90° about z):\n'); disp(R);
+ 
+so3mat = MatrixLog3(R);
+ 
+fprintf('MatrixLog3(R) = [ω̂]θ:\n'); disp(so3mat);
+omgtheta_recovered = so3ToVec(so3mat);
+fprintf('Recovered ω̂θ = [%.4f; %.4f; %.4f]\n', omgtheta_recovered);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Build Homogeneous Transformation from R and p</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+R = [1  0  0;
+     0  0 -1;
+     0  1  0];  % 90° about x-axis
+p = [1; 2; 5];
+ 
+T = RpToTrans(R, p);
+ 
+fprintf('R (90° about x):\n'); disp(R);
+fprintf('p = [%g; %g; %g]\n', p);
+fprintf('T = RpToTrans(R, p):\n'); disp(T);]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Extract R and p from Homogeneous Transformation</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+T = [1  0  0  0;
+     0  0 -1  2;
+     0  1  0  5;
+     0  0  0  1];
+fprintf('Input T:\n'); disp(T);
+ 
+[R, p] = TransToRp(T);
+ 
+fprintf('Extracted R:\n'); disp(R);
+fprintf('Extracted p = [%g; %g; %g]\n', p);]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Inverse of Homogeneous Transformation</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+R = [1  0  0;
+     0  0 -1;
+     0  1  0];
+p = [1; 2; 5];
+T = RpToTrans(R, p);
+fprintf('Input T:\n'); disp(T);
+ 
+invT = TransInv(T);
+ 
+fprintf('TransInv(T):\n'); disp(invT);
+fprintf('Verification T * T^{-1} ≈ I: max error = %.2e\n', ...
+    max(abs(T * invT - eye(4)), [], 'all'));
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Vector Twist to se(3) Matrix</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+V = [1; 2; 3; 4; 5; 6];
+fprintf('Input twist V = (ω, v) = [%g; %g; %g; %g; %g; %g]\n', V);
+ 
+se3mat = VecTose3(V);
+ 
+fprintf('[V] ∈ se(3):\n'); disp(se3mat);]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>se(3) Matrix to 6-Vector Twist</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[se3mat = [ 0  -3   2  4;
+           3   0  -1  5;
+          -2   1   0  6;
+           0   0   0  0];
+fprintf('Input [V]:\n'); disp(se3mat);
+ 
+V = se3ToVec(se3mat);
+ 
+fprintf('se3ToVec result: V = [%g; %g; %g; %g; %g; %g]\n', V);]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>6×6 Adjoint Representation of SE(3)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+%  Computes [Ad_T] ∈ R^{6×6} for frame transformations of twists:
+%    [Ad_T] = [R, 0; [p]R, R]
+
+
+T = [1  0  0  0;
+     0  0 -1  0;
+     0  1  0  3;
+     0  0  0  1];
+fprintf('Input T:\n'); disp(T);
+ 
+AdT = Adjoint(T);
+ 
+fprintf('[Ad_T] (6×6):\n'); disp(AdT);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Screw Parameters to Normalized Screw Axis</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[%  Given: point q on screw axis, unit direction s, pitch h
+%  Returns: S = (ω, v) = (s, -s × q + h*s)
+
+ 
+fprintf('\n--- 3.13 ScrewToAxis ---\n');
+ 
+q = [3; 0; 0];   % point on axis
+s = [0; 0; 1];   % axis direction (unit vector)
+h = 2;           % pitch (translation per radian)
+ 
+S = ScrewToAxis(q, s, h);
+ 
+fprintf('Point on axis q = [%g; %g; %g]\n', q);
+fprintf('Axis direction s = [%g; %g; %g]\n', s);
+fprintf('Pitch h = %g\n', h);
+fprintf('Screw axis S = [%.4f; %.4f; %.4f; %.4f; %.4f; %.4f]\n', S);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Exponential Coordinates to Screw Axis-Angle</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+%  Given Sθ ∈ R^6, extracts normalized screw axis S and distance θ.
+%  If ||ω|| ≠ 0: θ = ||ω||.  If ω = 0 (pure translation): θ = ||v||.
+ 
+fprintf('\n--- 3.14 AxisAng ---\n');
+ 
+expc6 = [0; 0; 1; 2; 3; 0] * 0.5;
+fprintf('Input Sθ = [%.2f; %.2f; %.2f; %.2f; %.2f; %.2f]\n', expc6);
+ 
+[S, theta] = AxisAng6(expc6);
+ 
+fprintf('Screw axis S = [%.4f; %.4f; %.4f; %.4f; %.4f; %.4f]\n', S);
+fprintf('Distance θ = %.4f\n', theta);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t> Matrix Exponential for SE(3)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[% Example: rotation of π/2 about z-axis at the origin + translation
+V = [0; 0; 1; 0; 2; 0];  % ω = (0,0,1), v = (0,2,0)
+theta = pi/2;
+se3mat = VecTose3(V * theta);
+ 
+T = MatrixExp6(se3mat);
+ 
+fprintf('Twist V (× θ = π/2):\n  ω = [%g; %g; %g], v = [%g; %g; %g]\n', V);
+fprintf('T = e^{[Sθ]}:\n'); disp(T);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Matrix Logarithm for SE(3)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[%  v = G^{-1}(θ) p  where  G(θ) = Iθ + (1-cosθ)[ω̂] + (θ-sinθ)[ω̂]²
+T = [1  0  0   0;
+     0  0  -1  0;
+     0  1   0  3;
+     0  0   0  1];
+fprintf('Input T:\n'); disp(T);
+ 
+se3mat = MatrixLog6(T);
+ 
+fprintf('MatrixLog6(T) = [Sθ]:\n'); disp(se3mat);
+Stheta = se3ToVec(se3mat);
+fprintf('Recovered Sθ = [%.4f; %.4f; %.4f; %.4f; %.4f; %.4f]\n', Stheta);]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="title"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Forward Kinematics</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>M Matrix</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[%% Define 3R Example Robot (This will be used in the follwoing sections)
+
+L1 = 1; L2 = 1; L3 = 1;
+ 
+% Home configuration of end-effector (all joints at zero)
+M = [1  0  0  L1+L2+L3;
+     0  1  0  0;
+     0  0  1  0;
+     0  0  0  1];
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:customXml w:element="equation"><w:customXmlPr><w:attr w:name="displayStyle" w:val="true"/><w:attr w:name="encoding" w:val="mathml"/><w:attr w:name="relationshipId" w:val="rId1"/></w:customXmlPr><w:r><w:t>S_{i\;} \;\&amp;\;B_i</w:t></w:r></w:customXml></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[% Screw axes in SPACE frame at home position
+% Joint 1: rotation about z through origin
+% Joint 2: rotation about z through (L1, 0, 0)
+% Joint 3: rotation about z through (L1+L2, 0, 0)
+Slist = [0  0  0;
+         0  0  0;
+         1  1  1;
+         0  0  0;
+         0 -L1  -(L1+L2);
+         0  0  0];
+ 
+% Screw axes in BODY frame at home position
+Blist = [ 0   0  0;
+          0   0  0;
+          1   1  1;
+          0   0  0;
+          L2+L3  L3  0;
+          0   0  0];
+ 
+fprintf('=== 3R Planar Robot Definition ===\n');
+fprintf('Link lengths: L1=%g, L2=%g, L3=%g\n', L1, L2, L3);
+fprintf('Home configuration M:\n'); disp(M);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Forward Kinematics (Body Frame)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[%  The exponentials are post-multiplied onto M.
+ 
+fprintf('\n--- 4.1 FKinBody ---\n');
+ 
+thetalist = [pi/6; pi/4; pi/3];
+fprintf('Joint angles θ = [%.4f; %.4f; %.4f] rad\n', thetalist);
+fprintf('  (%.1f°, %.1f°, %.1f°)\n', rad2deg(thetalist));
+ 
+T_body = FKinBody(M, Blist, thetalist);
+ 
+fprintf('End-effector configuration (body PoE):\n'); disp(T_body);
+ 
+[R_ee, p_ee] = TransToRp(T_body);
+fprintf('End-effector position: p = [%.4f; %.4f; %.4f]\n', p_ee);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t> Forward Kinematics (Space Frame)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+thetalist = [pi/6; pi/4; pi/3];
+fprintf('Joint angles θ = [%.4f; %.4f; %.4f] rad\n', thetalist);
+ 
+T_space = FKinSpace(M, Slist, thetalist);
+ 
+fprintf('End-effector configuration (space PoE):\n'); disp(T_space);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Verify both formulations give the same result</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[fprintf('Body vs Space max difference: %.2e\n', ...
+    max(abs(T_body - T_space), [], 'all'));
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="title"/><w:jc w:val="left"/></w:pPr><w:r><w:rPr><w:rFonts w:cs="monospace"/></w:rPr><w:t>VELOCITY KINEMATICS AND STATICS</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:rPr><w:rFonts w:cs="monospace"/></w:rPr><w:t>Body Jacobian</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+thetalist = [pi/6; pi/4; pi/3];
+fprintf('At θ = [%.4f; %.4f; %.4f] rad:\n', thetalist);
+ 
+Jb = JacobianBody(Blist, thetalist);
+ 
+fprintf('Body Jacobian J_b(θ) [6×3]:\n'); disp(Jb);
+ 
+% Demonstrate: given joint velocities, compute body twist
+dthetalist = [0.1; 0.2; 0.3];
+Vb = Jb * dthetalist;
+fprintf('For θ̇ = [%.2f; %.2f; %.2f]:\n', dthetalist);
+fprintf('  Body twist V_b = [%.4f; %.4f; %.4f; %.4f; %.4f; %.4f]\n', Vb);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Space Jacobian</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[ 
+thetalist = [pi/6; pi/4; pi/3];
+fprintf('At θ = [%.4f; %.4f; %.4f] rad:\n', thetalist);
+ 
+Js = JacobianSpace(Slist, thetalist);
+ 
+fprintf('Space Jacobian J_s(θ) [6×3]:\n'); disp(Js);
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Verify relationship: </w:t></w:r><w:customXml w:element="equation"><w:customXmlPr><w:attr w:name="displayStyle" w:val="false"/><w:attr w:name="encoding" w:val="mathml"/><w:attr w:name="relationshipId" w:val="rId2"/></w:customXmlPr><w:r><w:t>J_s =\left\lbrack {\mathrm{Ad}}_{\left\lbrace T_{\mathrm{sb}} \right\rbrace } \right\rbrack J_b</w:t></w:r></w:customXml></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[T_sb = FKinSpace(M, Slist, thetalist);
+AdTsb = Adjoint(T_sb);
+Jb_check = JacobianBody(Blist, thetalist);
+Js_from_Jb = AdTsb * Jb_check;
+fprintf('Verification J_s = [Ad_{Tsb}] J_b: max error = %.2e\n', ...
+    max(abs(Js - Js_from_Jb), [], 'all'));
+ ]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Singularity Analysis</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[fprintf('\nSingularity check: rank(J_s) = %d (full rank = %d)\n', ...
+    rank(Js), min(size(Js)));]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="title"/><w:jc w:val="left"/></w:pPr><w:r><w:rPr><w:rFonts w:cs="monospace"/></w:rPr><w:t>INVERSE KINEMATICS</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Inverse Kinematics (Body Frame)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[% Desired end-effector configuration (reachable for the 3R robot)
+theta_desired = [pi/4; pi/6; pi/3];
+T_desired = FKinBody(M, Blist, theta_desired);
+fprintf('Desired configuration (from θ = [%.4f; %.4f; %.4f]):\n', theta_desired);
+disp(T_desired);
+ 
+% Initial guess (far from solution)
+thetalist0 = [0.1; 0.1; 0.1];
+eomg = 1e-6;    % angular tolerance
+ev   = 1e-6;    % linear tolerance
+ 
+[thetalist_ik, success] = IKinBody(Blist, M, T_desired, thetalist0, eomg, ev);
+ 
+fprintf('Initial guess: [%.4f; %.4f; %.4f]\n', thetalist0);
+fprintf('IK Solution:   [%.4f; %.4f; %.4f]\n', thetalist_ik);
+fprintf('Success: %d\n', success);
+ 
+% Verify by computing FK with the IK solution
+T_check = FKinBody(M, Blist, thetalist_ik);
+fprintf('FK error (max |T_desired - T_check|): %.2e\n', ...
+    max(abs(T_desired - T_check), [], 'all'));]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="heading"/><w:jc w:val="left"/></w:pPr><w:r><w:t>Inverse Kinematics (Space Frame)</w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[
+% Same desired configuration
+thetalist0 = [0.1; 0.1; 0.1];
+ 
+[thetalist_ik_s, success_s] = IKinSpace(Slist, M, T_desired, thetalist0, eomg, ev);
+ 
+fprintf('IKinSpace Solution: [%.4f; %.4f; %.4f]\n', thetalist_ik_s);
+fprintf('Success: %d\n', success_s);
+ 
+% Verify
+T_check_s = FKinSpace(M, Slist, thetalist_ik_s);
+fprintf('FK error: %.2e\n', max(abs(T_desired - T_check_s), [], 'all'));]]></w:t></w:r></w:p><w:p><w:pPr><w:sectPr/></w:pPr></w:p><w:p><w:pPr><w:pStyle w:val="title"/><w:jc w:val="left"/></w:pPr><w:r><w:t></w:t></w:r></w:p><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[%% ########################################################################
+%                   CHAPTER 9: TRAJECTORY GENERATION
+%  ########################################################################
+%  Functions for generating smooth point-to-point trajectories in both
+%  joint space and task space (SE(3)).
+ 
+%% 9.1  CubicTimeScaling — Cubic Polynomial Time Scaling
+%  Signature:  s = CubicTimeScaling(Tf, t)
+%  s(t) = 3(t/T)^2 - 2(t/T)^3
+%  Boundary conditions: s(0) = 0, s(T) = 1, ṡ(0) = 0, ṡ(T) = 0
+ 
+fprintf('\n--- 9.1 CubicTimeScaling ---\n');
+ 
+Tf = 5.0;
+t_test = linspace(0, Tf, 200);
+s_cubic = zeros(size(t_test));
+for i = 1:length(t_test)
+    s_cubic(i) = CubicTimeScaling(Tf, t_test(i));
+end
+ 
+fprintf('Tf = %.1f s\n', Tf);
+fprintf('s(0) = %.4f, s(Tf) = %.4f, s(Tf/2) = %.4f\n', ...
+    s_cubic(1), s_cubic(end), CubicTimeScaling(Tf, Tf/2));
+ 
+%% 9.2  QuinticTimeScaling — Quintic Polynomial Time Scaling
+%  Signature:  s = QuinticTimeScaling(Tf, t)
+%  s(t) = 10(t/T)^3 - 15(t/T)^4 + 6(t/T)^5
+%  Also ensures: s̈(0) = 0, s̈(T) = 0 (zero acceleration at endpoints)
+ 
+fprintf('\n--- 9.2 QuinticTimeScaling ---\n');
+ 
+s_quintic = zeros(size(t_test));
+for i = 1:length(t_test)
+    s_quintic(i) = QuinticTimeScaling(Tf, t_test(i));
+end
+ 
+fprintf('Tf = %.1f s\n', Tf);
+fprintf('s(0) = %.4f, s(Tf) = %.4f, s(Tf/2) = %.4f\n', ...
+    s_quintic(1), s_quintic(end), QuinticTimeScaling(Tf, Tf/2));
+ 
+% Compare cubic vs quintic
+figure('Name', 'Time Scalings');
+plot(t_test, s_cubic, 'b-', t_test, s_quintic, 'r--', 'LineWidth', 2);
+xlabel('Time (s)'); ylabel('s(t)');
+title('Cubic vs Quintic Time Scaling');
+legend('Cubic', 'Quintic', 'Location', 'southeast');
+grid on;
+fprintf('  → Time scaling comparison plot generated.\n');
+ 
+%% 9.3  JointTrajectory — Straight-Line in Joint Space
+%  Signature:  traj = JointTrajectory(thetastart, thetaend, Tf, N, method)
+%  Returns an N×n matrix; each row is a joint configuration.
+%  method = 3 (cubic) or 5 (quintic).
+ 
+fprintf('\n--- 9.3 JointTrajectory ---\n');
+ 
+thetastart = [0;    0;    0];
+thetaend   = [pi/2; pi/3; pi/4];
+Tf = 3.0;
+N  = 150;
+ 
+traj_joint_cubic   = JointTrajectory(thetastart, thetaend, Tf, N, 3);
+traj_joint_quintic = JointTrajectory(thetastart, thetaend, Tf, N, 5);
+ 
+fprintf('Start: [%.4f; %.4f; %.4f]\n', thetastart);
+fprintf('End:   [%.4f; %.4f; %.4f]\n', thetaend);
+fprintf('Trajectory size: %d × %d\n', size(traj_joint_quintic));
+ 
+% Plot
+t_vec_traj = linspace(0, Tf, N);
+figure('Name', 'Joint Trajectory');
+subplot(1,2,1);
+plot(t_vec_traj, traj_joint_cubic, 'LineWidth', 1.5);
+title('Cubic Joint Trajectory'); xlabel('Time (s)'); ylabel('θ (rad)');
+legend('\theta_1', '\theta_2', '\theta_3'); grid on;
+ 
+subplot(1,2,2);
+plot(t_vec_traj, traj_joint_quintic, 'LineWidth', 1.5);
+title('Quintic Joint Trajectory'); xlabel('Time (s)'); ylabel('θ (rad)');
+legend('\theta_1', '\theta_2', '\theta_3'); grid on;
+fprintf('  → Joint trajectory plots generated.\n');
+ 
+%% 9.4  ScrewTrajectory — Constant Screw Motion in SE(3)
+%  Signature:  traj = ScrewTrajectory(Xstart, Xend, Tf, N, method)
+%  Interpolates along a constant screw axis from Xstart to Xend:
+%    X(s) = Xstart · exp(log(Xstart^{-1} Xend) · s(t))
+ 
+fprintf('\n--- 9.4 ScrewTrajectory ---\n');
+ 
+Xstart = [1  0  0  1;
+          0  1  0  0;
+          0  0  1  0;
+          0  0  0  1];
+ 
+Xend   = [0  0  1  0.5;
+          1  0  0  2;
+          0  1  0  1;
+          0  0  0  1];
+ 
+Tf = 5.0;
+N  = 50;
+ 
+traj_screw = ScrewTrajectory(Xstart, Xend, Tf, N, 5);
+ 
+fprintf('Start position: [%.2f, %.2f, %.2f]\n', Xstart(1:3,4));
+fprintf('End position:   [%.2f, %.2f, %.2f]\n', Xend(1:3,4));
+fprintf('Trajectory: %d SE(3) matrices\n', length(traj_screw));
+ 
+% Extract positions for plotting
+pos_screw = zeros(N, 3);
+for i = 1:N
+    T_i = traj_screw{i};
+    pos_screw(i,:) = T_i(1:3, 4)';
+end
+ 
+figure('Name', 'Screw Trajectory Path');
+plot3(pos_screw(:,1), pos_screw(:,2), pos_screw(:,3), 'b-o', ...
+    'LineWidth', 1.5, 'MarkerSize', 3);
+hold on;
+plot3(pos_screw(1,1), pos_screw(1,2), pos_screw(1,3), 'gs', ...
+    'MarkerSize', 12, 'LineWidth', 2);
+plot3(pos_screw(end,1), pos_screw(end,2), pos_screw(end,3), 'r^', ...
+    'MarkerSize', 12, 'LineWidth', 2);
+hold off;
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('Screw Trajectory — End-Effector Path');
+legend('Path', 'Start', 'End'); grid on; axis equal;
+fprintf('  → 3D screw trajectory plot generated.\n');
+ 
+%% 9.5  CartesianTrajectory — Decoupled Rotation and Translation
+%  Signature:  traj = CartesianTrajectory(Xstart, Xend, Tf, N, method)
+%  The origin traces a STRAIGHT LINE in R^3, while rotation is
+%  independently interpolated on SO(3):
+%    p(s) = p_start + s(t)·(p_end - p_start)
+%    R(s) = R_start · exp(log(R_start^T R_end) · s(t))
+ 
+fprintf('\n--- 9.5 CartesianTrajectory ---\n');
+ 
+% Same start/end as ScrewTrajectory for comparison
+traj_cart = CartesianTrajectory(Xstart, Xend, Tf, N, 5);
+ 
+fprintf('Trajectory: %d SE(3) matrices\n', length(traj_cart));
+ 
+% Extract positions
+pos_cart = zeros(N, 3);
+for i = 1:N
+    T_i = traj_cart{i};
+    pos_cart(i,:) = T_i(1:3, 4)';
+end
+ 
+% Compare screw vs Cartesian paths
+figure('Name', 'Screw vs Cartesian Trajectory');
+plot3(pos_screw(:,1), pos_screw(:,2), pos_screw(:,3), 'b-o', ...
+    'LineWidth', 1.5, 'MarkerSize', 3); hold on;
+plot3(pos_cart(:,1), pos_cart(:,2), pos_cart(:,3), 'r-s', ...
+    'LineWidth', 1.5, 'MarkerSize', 3);
+plot3(pos_screw(1,1), pos_screw(1,2), pos_screw(1,3), 'gp', ...
+    'MarkerSize', 15, 'LineWidth', 2);
+plot3(pos_screw(end,1), pos_screw(end,2), pos_screw(end,3), 'kp', ...
+    'MarkerSize', 15, 'LineWidth', 2);
+hold off;
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('Screw (blue) vs Cartesian (red) Trajectory Paths');
+legend('Screw Path', 'Cartesian Path', 'Start', 'End');
+grid on; axis equal;
+fprintf('  → Comparison plot: screw (curved) vs Cartesian (straight line).\n');]]></w:t></w:r></w:p></w:body></w:document>
